@@ -1,6 +1,6 @@
 # Aplicación challenge Test_Dev.
 
-Aplicación que permite listar categorías, automóviles y la ficha de los automóviles.
+Aplicación que permite listar categorías, automóviles y obtener la ficha de los automóviles.
 
 </br>
 - <b>Instalar las dependencias.</b>
@@ -22,7 +22,6 @@ python manage.py migrate
 python manage.py createsuperuser
 ```
 </br>
-
 - <b>Iniciar el servidor.</b>
 
 ```
@@ -38,65 +37,19 @@ python INSERT_INITIAL_DATA.py
 
 # Endpoints
 
-El principal que trae las categorías y también los automóviles, (Trae únicaménte las categorías que tengan automóviles asociados).
-
-```
-/api/v1/index/
-```
-
-</br></br>
-
-<b>Listado de todos los automóviles.</b>
-
-```
-/api/v1/cars/
-```
-
-</br></br>
-
-<b>Filtrar automóviles por categorías.</b>
-
-```
-/api/v1/cars/?by_category_id=ID
-```
-
-</br></br>
-
-<b>Listado de automóviles según precio.</b>
-
-    Parámetro (price) ordena de menor a mayor precio.
-    Parámetro (-price) ordena de mayor a menor precio.
-
-ejemplo
-
-```
-/api/v1/cars/?by_price=price
-```
-
-</br></br>
-
-<b>Listado de automóviles según antigüedad.</b>
-
-    Parámetro (year) ordena los más viejos primero.
-    Parámetro (-year) ordena los más nuevos primero.
-
-ejemplo
-
-```
-/api/v1/cars/?by_year=-year
-```
+| URL (GET) | Descripción |
+| --- | --- |
+| /api/v1/index/ | Trae las categorías y los automóviles. </br> (Únicaménte categorías que tengan automóviles asociados). |
+| /api/v1/cars/ | Listado de todos los automóviles. |
+| /api/v1/cars/?by_category_id=ID | Filtrar automóviles por categorías. |
+| /api/v1/cars/?by_price=param | Parámetro (price) ordena de menor a mayor precio. </br> Parámetro (-price) ordena de mayor a menor precio. |
+| /api/v1/cars/?by_year=param | Parámetro (year) ordena los más viejos primero. </br> Parámetro (-year) ordena los más nuevos primero. |
+| /api/v1/car/ID_AUTO/ | Obtener la ficha de un automóvil. |
 
 </br>
 
 Se puede utilizar una combinación entre el filtrado por categoría y por orden, por ejemplo
 
     /api/v1/cars/?by_category_id=ID&by_year=-year
+    o
     /api/v1/cars/?by_category_id=ID&by_price=price
-
-</br></br>
-
-<b>Obtener la ficha de un automóvil.</b>
-
-```
-/api/v1/car/ID_AUTO/
-```
