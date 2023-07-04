@@ -17,30 +17,23 @@ class CarList(APIView):
         by_price = request.query_params.get('by_price')
         by_year = request.query_params.get('by_year')
 
-        _filter = Q(category__active=True)
+        queryset = Car.objects.filter(active=True)
 
         if by_category_id:
             try:
-                category_queryset = CarCategory.objects \
-                .annotate(car_count=Count("Car")) \
-                .get(pk=by_category_id, active=True, car_count__gt=0)
-                _filter = Q(category=category_queryset)
-            except:
+                category_queryset = CarCategory.objects.annotate(car_count=Count('Car')).get(pk=by_category_id, active=True, car_count__gt=0)
+                queryset = queryset.filter(category=category_queryset)
+            except CarCategory.DoesNotExist:
                 if not by_category_id.isnumeric():
                     return Response(
                         {'detail': 'El ID de la categoría debe ser un número entero.'},
                         status=status.HTTP_404_NOT_FOUND
                     )
-                elif by_category_id:
+                else:
                     return Response(
                         {'detail': 'La categoría no existe o todavía no tiene automóviles cargados.'},
                         status=status.HTTP_404_NOT_FOUND
                     )
-
-        queryset = Car.objects.filter(
-            _filter,
-            active=True
-        )
 
         if by_price:
             if by_price == '-price' or by_price == 'price':
@@ -68,31 +61,31 @@ class CarDetail(APIView):
 
     def get(self, request, pk):
         try:
-            instance = Car.objects.get(pk=pk, category__active=True, active=True)
-        except:
+            instance = Car.objects.select_related('CarDetail').get(pk=pk, category__active=True, active=True)
+        except Car.DoesNotExist:
             return Response(
                 {'detail': 'No se encontró un automóvil con ese ID.'},
                 status=status.HTTP_404_NOT_FOUND
             )
-        
-        try:
-            car_detail = instance.CarDetail
-        except:
+
+        if not hasattr(instance, 'CarDetail'):
             return Response(
                 {'detail': 'No se pudo cargar la ficha del modelo, vuelva a intentarlo más tarde.'},
                 status=status.HTTP_404_NOT_FOUND
             )
-        else:
-            serializer_car_detail = CarDetailBaseSerializer(car_detail, context={'request': request})
-            serializer_small_features = CarDetailBaseSerializer(instance.CarDetail.SmallFeatures.all(), many=True, context={'request': request})
-            serializer_big_features = CarDetailBaseSerializer(instance.CarDetail.BigFeatures.all(), many=True, context={'request': request})
+        
+        car_detail = instance.CarDetail
 
-            return Response({
-                'car': {
-                    'name': instance.name,
-                    'version': instance.version
-                },
-                'car_detail': serializer_car_detail.data,
-                'small_features': serializer_small_features.data,
-                'big_features': serializer_big_features.data
-            })
+        serializer_car_detail = CarDetailBaseSerializer(car_detail, context={'request': request})
+        serializer_small_features = CarDetailBaseSerializer(car_detail.SmallFeatures.all(), many=True, context={'request': request})
+        serializer_big_features = CarDetailBaseSerializer(car_detail.BigFeatures.all(), many=True, context={'request': request})
+
+        return Response({
+            'car': {
+                'name': instance.name,
+                'version': instance.version
+            },
+            'car_detail': serializer_car_detail.data,
+            'small_features': serializer_small_features.data,
+            'big_features': serializer_big_features.data
+        })
